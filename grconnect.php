@@ -1,13 +1,13 @@
 <?php
 /**
  * @package GR Connect
- * @version 1.0.0
+ * @version 1.0.1
  */
 /*
  Plugin Name: Gratisfaction all in one loyalty contests referral program for woocommerce
  Plugin URI: http://appsmav.com
  Description: Connect your woocommerce orders with appsmav GR Loyality program.
- Version: 1.0.0
+ Version: 1.0.1
  Author: Appsmav
  Author URI: http://appsmav.com
  License: GPL2
@@ -81,7 +81,7 @@ if(!class_exists('GR_Connect'))
 				$body .= '<p>P.S. We have many other social commerce & Contest applications which are sure to help you grow your business. Please take a look at www.appsmav.com</p>';
 				$body .= "<p>P.P.S. If you have any app suggestion, don't hesitate to let us know. We'll try our best to make your idea happen.</p>";
 
-				$headers = array('Content-Type: text/html; charset=UTF-8', 'From: Appsmav <donotreply@appsmav.com>', 'Bcc: Admin Appsmav <developers@appsmav.com>');
+				$headers = array('Content-Type: text/html; charset=UTF-8', 'From: Appsmav <akash@appsmav.com>', 'Bcc: Admin Appsmav <developers@appsmav.com>');
 
 				wp_mail( $to, $subject, $body, $headers );
 			}

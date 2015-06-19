@@ -33,7 +33,7 @@ if(!class_exists('GR_Connect'))
 {
     class GR_Connect 
     {
-		var $api_url		= 'http://www.appsmav.com/gr/api';
+		var $api_url		= 'https://appsmav.com/gr/api';
         /**
          * Construct the plugin object
          */

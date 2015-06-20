@@ -13,11 +13,49 @@ Short description of this great plugin. No more than 150 characters, no markup.
 All-in-One Loyalty+Social Contests+Referral Marketing WooCommerce
 
 == Description ==
-All-in-One Loyalty, Social Contests, Sweepstakes, Giveaways, Promotions & Referral Marketing program with your WordPress- WooCommerce Store
-> Create great Sweepstakes, Contests, Promotions, Referral Marketing Campaigns & Gamification based Loyalty programs from your Wordpress WooCommerce Store.
- Host them on your Wordpress site, on your Facebook Page, your  Blog, Tumblr  or anywhere else.
-This plugin provides integration between our Gratisfaction application & your wordpress woocommerce site, and much more.
-See all details here: https://www.appsmav.com/gratisfaction.php
+### Use Gratisfaction to:
+
+*   Get Traffic, Leads & Sales
+*   Increase Engagement
+*   Get Repeat Purchases & Increase Customer Lifetime Value
+*   Get Referrals
+
+### Gratisfaction combines gamification & social media actions to help you:
+
+*   Run Viral Social Contests, Sweepstakes & Giveaways
+*   Reward Customers for Social Sharing
+*   Create Loyalty Programs to encourage Repeat Purchases & Increase Lifetime Value
+
+Get **FREE FOREVER** Version now [https://appsmav.com/gratisfaction.php](https://appsmav.com/gratisfaction.php
+)
+
+** *The free forever version includes all features.* **
+
+*   Easy to setup & manage
+*   No contract. Cancel anytime
+*   Setup unlimited campaigns
+*   Create beautiful contests, referral & loyalty campaigns
+*   All plans come with full range of features included
+
+### Frequently Asked Questions
+
+*   Is Gratisfaction free?
+
+Gratisfaction is absolutely free for upto 200 customers. This means that you can use all features, run any number of campaigns and it will show you upto 200 leads/customers absolutely free.
+
+*   What features are available in the free version?
+
+The short answer is all features. You can run any number of campaigns, get unrestricted use to all features, run loyalty programs, contests, etc.
+
+Gratsifaction is free for upto 200 customers. You can learn more about our plans & pricing at https://www.appsmav.com/gratisfaction.php
+
+*   What kind of support do I get?
+
+Gratisfaction is very easy and fast to set up. If you ever need assistance, we are here to support you. For any pre-sales or product inquiries, send us an email to sales@appsmav.com . Existing customers, please send email to support@appsmav.com
+
+*   I have another question, what do I do?
+
+Contact us Anytime! For any pre-sales or product inquiries, send us an email to sales@appsmav.com .
 
 
 == Installation ==

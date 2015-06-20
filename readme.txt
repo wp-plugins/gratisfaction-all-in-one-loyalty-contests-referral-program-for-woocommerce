@@ -21,7 +21,7 @@ See all details here: https://www.appsmav.com/gratisfaction.php
 
 
 == Installation ==
-1. Upload "grconnect" to the "/wp-content/plugins/" directory.
+1. Upload "gratisfaction-all-in-one-loyalty-contests-referral-program-for-woocommerce" to the "/wp-content/plugins/" directory.
 1. Activate the plugin through the "Plugins" menu in WordPress.
 
 

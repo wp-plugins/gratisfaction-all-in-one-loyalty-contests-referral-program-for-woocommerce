@@ -8,7 +8,6 @@ Stable tag: 4.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Short description of this great plugin. No more than 150 characters, no markup.
 All-in-One Loyalty+Social Contests+Referral Marketing WooCommerce
 
 == Description ==

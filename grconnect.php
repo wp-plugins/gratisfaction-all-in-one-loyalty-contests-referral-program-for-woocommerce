@@ -4,9 +4,9 @@
  * @version 1.0.1
  */
 /*
- Plugin Name: Gratisfaction all in one loyalty contests referral program for woocommerce
+ Plugin Name: Gratisfaction All-in-One loyalty contests referral program for WooCommerce
  Plugin URI: http://appsmav.com
- Description: Connect your woocommerce orders with appsmav GR Loyality program.
+ Description: Connect your WooCommerce orders with Apps Mav Gratisfaction Loyality Program.
  Version: 1.0.1
  Author: Appsmav
  Author URI: http://appsmav.com

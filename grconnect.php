@@ -1,13 +1,13 @@
 <?php
 /**
  * @package GR Connect
- * @version 1.0.1
+ * @version 1.0.2
  */
 /*
  Plugin Name: Gratisfaction All-in-One loyalty contests referral program for WooCommerce
  Plugin URI: http://appsmav.com
  Description: Connect your WooCommerce orders with Apps Mav Gratisfaction Loyality Program.
- Version: 1.0.1
+ Version: 1.0.2
  Author: Appsmav
  Author URI: http://appsmav.com
  License: GPL2
@@ -87,9 +87,6 @@ if(!class_exists('GR_Connect'))
 			}
         } // END public static function deactivate
 		
-		/**
-		 * hook into WP's woocommerce payment made action hook
-		 */
 		public function send_status_init($order_id)
 		{
 			if(($_REQUEST['original_post_status']	==	'wc-cancelled') && ($_REQUEST['order_status']	!=	'wc-cancelled') ){
@@ -114,70 +111,17 @@ if(!class_exists('GR_Connect'))
 			
 			$param['email']	=	$_REQUEST['_billing_email'];
 			
+			$param['name']			=	$_REQUEST['_billing_first_name'];
+			$param['comment']		=	'Order Id '.str_replace('wc-','',$_REQUEST['order_status']).' - '.$order_id.' From '.get_option('siteurl');
 						
-			$amtArr		=	get_option('grconnect_price');
-			$amt		=	!empty($amtArr)?$amtArr:'';
-			
-			$pntArr		=	get_option('grconnect_point');
-			$pnt		=	!empty($pntArr)?$pntArr:'';
-			
-			$grAppIdArr	=	get_option('grconnect_appid');
-			$grAppId	=	!empty($grAppIdArr)?$grAppIdArr:'';
-			
-			$grCampIdArr	=	get_option('grconnect_secret');
-			$grCampId		=	!empty($grCampIdArr)?$grCampIdArr:'';
-			
-			$pntTot	=	ceil($param['total']/$amt) * $pnt;
-			
-			$paramSalt				=	array();
-			
-			
-			$paramSalt['id_site']		=	$params['id_site']		=	$grAppId;
-			$paramSalt['points']		=	$params['points']		=	$pntTot;
-			$paramSalt['id_campaign']	=	$params['id_campaign']	=	$grCampId;
-			$paramSalt['email']			=	$params['email']		=	$param['email'];
-			
-			$params['app']			=	'WP';
-			$params['name']			=	$_REQUEST['_billing_first_name'];
-			$params['comment']		=	'Order Id '.str_replace('wc-','',$_REQUEST['order_status']).' - '.$order_id.' From '.get_option('siteurl');
-			
-			
-			$allparam	=	implode('#WP#',$paramSalt);
-			$params['salt']			=	md5($allparam);
-			
-			
-		
-			if($grAppId	!=	'' && $grCampId	!=	''){
-				// throw new Exception("Gr app id or app secret is missing");
 					
-				 $url = $urlApi;
-				 $ch = curl_init();
-				 curl_setopt($ch,CURLOPT_URL,$url);
-				 curl_setopt($ch,CURLOPT_HEADER,0);
-				 curl_setopt($ch,CURLOPT_RETURNTRANSFER,1);
-				 curl_setopt($ch, CURLOPT_POSTFIELDS, $params); 
-				 $response = curl_exec($ch);
-				 curl_close($ch);
-
-				
-				 $res = json_decode($response, true);
-				
-								
-				 if(empty($res['error']) === false)
-				 {
+			$param['order']	=	0;
 					
-					$msg = 'Unexpected error occur. Please check with administrator.';
-											
-					//throw new Exception($msg);
-				 }
-				
-			}else{
-				echo 'Gr app id or secret is missing';
-			}			
-		
+			$this->callGrConnectApi($param,$urlApi);	
 		}
+		
 		/**
-		 * hook into WP's woocommerce payment made action hook
+		 * hook into WP's woocommerce checkout order processed action hook
 		 */
 		public function send_connect_init($order_id)
 		{
@@ -192,88 +136,20 @@ if(!class_exists('GR_Connect'))
 			$param['total'] =	$param['subtotal'];
 			
 			$param['email']	=	$_REQUEST['billing_email'];//$param['user']->data->user_email;
+			$param['order']	=	1;
+			$param['createaccount']	=	isset($_REQUEST['createaccount'])?$_REQUEST['createaccount']:0;
 			
-						
-			$amtArr		=	get_option('grconnect_price');
-			$amt		=	!empty($amtArr)?$amtArr:'';
-			
-			$pntArr		=	get_option('grconnect_point');
-			$pnt		=	!empty($pntArr)?$pntArr:'';
-			
-			$grAppIdArr	=	get_option('grconnect_appid');
-			$grAppId	=	!empty($grAppIdArr)?$grAppIdArr:'';
-			
-			$grCampIdArr	=	get_option('grconnect_secret');
-			$grCampId		=	!empty($grCampIdArr)?$grCampIdArr:'';
-			
-			$pntTot	=	ceil($param['total']/$amt) * $pnt;
-			
-			$min_order		=	get_option('grconnect_min_order');
-			if($min_order	>	$param['subtotal'] && $min_order	!= 0)
-				$pntTot	=	0;
-				
-			$paramSalt				=	array();
-			
-			//print_r($param);
-			$paramSalt['id_site']		=	$params['id_site']		=	$grAppId;
-			$paramSalt['points']		=	$params['points']		=	$pntTot;
-			$paramSalt['id_campaign']	=	$params['id_campaign']	=	$grCampId;
-			$paramSalt['email']			=	$params['email']		=	$param['email'];
-			
-			$params['app']			=	'WP';
-			$params['name']			=	$_REQUEST['billing_first_name'];
-			$params['comment']		=	'Order Id - '.$order_id.' From '.get_option('siteurl');
-			
-			if(isset($_REQUEST['createaccount'])){
-				$grWelBonuschkArr	=	get_option('grconnect_wel_bonus_chk');
-				$grWelBonusChk		=	!empty($grWelBonuschkArr)?$grWelBonuschkArr:0;
-				$grWelBonus			=	0;
-				if($grWelBonusChk	==	1)
-				{
-					$grWelBonusArr	=	get_option('grconnect_wel_bonus');
-					$grWelBonus		=	!empty($grWelBonusArr)?$grWelBonusArr:0;
-				
-					$paramSalt['points']		=	$params['points']		=	$pntTot + $grWelBonus;
-					$params['comment']			=	$params['comment']." Welcome bonus added. "; 
-				}
-			}
-			
-			$allparam	=	implode('#WP#',$paramSalt);
-			$params['salt']			=	md5($allparam);
-			
-			
-			if($grAppId	!=	'' && $grCampId	!=	''){
-				// throw new Exception("Gr app id or app secret is missing");
-					
-				 $url =  $this->api_url.'/addEntry';
-				 $ch = curl_init();
-				 curl_setopt($ch,CURLOPT_URL,$url);
-				 curl_setopt($ch,CURLOPT_HEADER,0);
-				 curl_setopt($ch,CURLOPT_RETURNTRANSFER,1);
-				 curl_setopt($ch, CURLOPT_POSTFIELDS, $params); 
-				 $response = curl_exec($ch);
-				 curl_close($ch);
-
-				
-				 $res = json_decode($response, true);
-				
-								
-				 if(empty($res['error']) === false)
-				 {
-					
-					$msg = 'Unexpected error occur. Please check with administrator.';
-											
-					//throw new Exception($msg);
-				 }
-				
-			}else{
-				echo 'Gr app id or secret is missing';
-			}
-			
-						
-			// Possibly do additional admin_init tasks
-		} // END public static function activate
+			$param['name']			=	$_REQUEST['billing_first_name'];
+			$param['comment']		=	'Order Id - '.$order_id.' From '.get_option('siteurl');			
 		
+			$urlApi	= $this->api_url.'/addEntry';
+			
+			$this->callGrConnectApi($param,$urlApi);	
+		} 
+		
+		/**
+		 *hook into WP's woocommerce before delete post action hook
+		 */
 		public function send_refund_delete_post_init($refund_id)
 		{
 		
@@ -300,74 +176,20 @@ if(!class_exists('GR_Connect'))
 				$param['total'] =	$amt;
 			
 				$param['email']	=	$email;
+				$param['order']	=	0;
 				
 				$urlApi =  $this->api_url.'/addEntry';
 				
-							
-				$amtArr		=	get_option('grconnect_price');
-				$amt		=	!empty($amtArr)?$amtArr:'';
-				
-				$pntArr		=	get_option('grconnect_point');
-				$pnt		=	!empty($pntArr)?$pntArr:'';
-				
-				$grAppIdArr	=	get_option('grconnect_appid');
-				$grAppId	=	!empty($grAppIdArr)?$grAppIdArr:'';
-				
-				$grCampIdArr	=	get_option('grconnect_secret');
-				$grCampId		=	!empty($grCampIdArr)?$grCampIdArr:'';
-				
-				$pntTot	=	ceil($param['total']/$amt) * $pnt;
-				
-				$paramSalt				=	array();
-				
-				
-				$paramSalt['id_site']		=	$params['id_site']		=	$grAppId;
-				$paramSalt['points']		=	$params['points']		=	$pntTot;
-				$paramSalt['id_campaign']	=	$params['id_campaign']	=	$grCampId;
-				$paramSalt['email']			=	$params['email']		=	$param['email'];
-				
-				$params['app']			=	'WP';
-				$params['name']			=	$order->billing_first_name;
-				$params['comment']		=	'Order Id Refund Restore - '.$refund->post->post_parent.' From '.get_option('siteurl');
-				
-				
-				$allparam	=	implode('#WP#',$paramSalt);
-				$params['salt']			=	md5($allparam);
-				
-				
-			
-				if($grAppId	!=	'' && $grCampId	!=	''){
-					// throw new Exception("Gr app id or app secret is missing");
+				$param['name']			=	$order->billing_first_name;
+				$param['comment']		=	'Order Id Refund Restore - '.$refund->post->post_parent.' From '.get_option('siteurl');
 						
-					 $url = $urlApi;
-					 $ch = curl_init();
-					 curl_setopt($ch,CURLOPT_URL,$url);
-					 curl_setopt($ch,CURLOPT_HEADER,0);
-					 curl_setopt($ch,CURLOPT_RETURNTRANSFER,1);
-					 curl_setopt($ch, CURLOPT_POSTFIELDS, $params); 
-					 $response = curl_exec($ch);
-					 curl_close($ch);
-
-					
-					 $res = json_decode($response, true);
-					
-						
-					 if(empty($res['error']) === false)
-					 {
-						
-						$msg = 'Unexpected error occur. Please check with administrator.';
-												
-						//throw new Exception($msg);
-					 }
-					
-				}else{
-					echo 'Gr app id or secret is missing';
-				}
-			}
-			
-			// Possibly do additional admin_init tasks
-		} // END public static function activate
+				$this->callGrConnectApi($param,$urlApi);
+			}						
+		} 
 		
+		/**
+		 *hook into WP's woocommerce order refunded action hook
+		 */
 		public function send_refund_init($order_id)
 		{
 		
@@ -389,73 +211,19 @@ if(!class_exists('GR_Connect'))
 			
 			$param['total'] =	$amt;
 			$param['email']	=	$email;
+			$param['order']	=	0;
 			
 			$urlApi =  $this->api_url.'/removeEntry';
 			
-						
-			$amtArr		=	get_option('grconnect_price');
-			$amt		=	!empty($amtArr)?$amtArr:'';
-			
-			$pntArr		=	get_option('grconnect_point');
-			$pnt		=	!empty($pntArr)?$pntArr:'';
-			
-			$grAppIdArr	=	get_option('grconnect_appid');
-			$grAppId	=	!empty($grAppIdArr)?$grAppIdArr:'';
-			
-			$grCampIdArr	=	get_option('grconnect_secret');
-			$grCampId		=	!empty($grCampIdArr)?$grCampIdArr:'';
-			
-			$pntTot	=	ceil($param['total']/$amt) * $pnt;
-			
-			$paramSalt				=	array();
-			
-			
-			$paramSalt['id_site']		=	$params['id_site']		=	$grAppId;
-			$paramSalt['points']		=	$params['points']		=	$pntTot;
-			$paramSalt['id_campaign']	=	$params['id_campaign']	=	$grCampId;
-			$paramSalt['email']			=	$params['email']		=	$param['email'];
-			
-			$params['app']			=	'WP';
-			$params['name']			=	$order->billing_first_name;
-			$params['comment']		=	'Order Id Refunded - '.$order_id.' From '.get_option('siteurl');
-			
-			
-			$allparam	=	implode('#WP#',$paramSalt);
-			$params['salt']			=	md5($allparam);
-			
+			$param['name']			=	$order->billing_first_name;
+			$param['comment']		=	'Order Id Refunded - '.$order_id.' From '.get_option('siteurl');
 			
 		
-			if($grAppId	!=	'' && $grCampId	!=	''){
-				// throw new Exception("Gr app id or app secret is missing");
-					
-				 $url = $urlApi;
-				 $ch = curl_init();
-				 curl_setopt($ch,CURLOPT_URL,$url);
-				 curl_setopt($ch,CURLOPT_HEADER,0);
-				 curl_setopt($ch,CURLOPT_RETURNTRANSFER,1);
-				 curl_setopt($ch, CURLOPT_POSTFIELDS, $params); 
-				 $response = curl_exec($ch);
-				 curl_close($ch);
-
-				
-				 $res = json_decode($response, true);
-				
-							
-				 if(empty($res['error']) === false)
-				 {
-					
-					$msg = 'Unexpected error occur. Please check with administrator.';
-											
-					//throw new Exception($msg);
-				 }
-				
-			}else{
-				echo 'Gr app id or secret is missing';
-			}
-			
+			$this->callGrConnectApi($param,$urlApi);
 			
 			// Possibly do additional admin_init tasks
 		} // END public static function activate
+		
 		
 		/**
 		 * hook into WP's admin_init action hook
@@ -518,8 +286,102 @@ if(!class_exists('GR_Connect'))
 			}
 
 			// Render the settings template
-			include(sprintf("%s/templates/settings.php", dirname(__FILE__)));
+			if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) ) ) {
+				include(sprintf("%s/templates/settings.php", dirname(__FILE__)));
+			}
+			else
+			{
+				echo "<h2>Please Activate Woocommerce Plugin to add settings<h2>";
+			}
 		} // END public function plugin_settings_page()
+		
+		private function callGrConnectApi($param,$urlApi)
+		{
+						
+			$amtArr		=	get_option('grconnect_price');
+			$amt		=	!empty($amtArr)?$amtArr:'';
+			
+			$pntArr		=	get_option('grconnect_point');
+			$pnt		=	!empty($pntArr)?$pntArr:'';
+			
+			$grAppIdArr	=	get_option('grconnect_appid');
+			$grAppId	=	!empty($grAppIdArr)?$grAppIdArr:'';
+			
+			$grCampIdArr	=	get_option('grconnect_secret');
+			$grCampId		=	!empty($grCampIdArr)?$grCampIdArr:'';
+			
+			$pntTot	=	ceil($param['total']/$amt) * $pnt;
+			
+			$paramSalt				=	array();
+			
+			
+			$paramSalt['id_site']		=	$params['id_site']		=	$grAppId;
+			$paramSalt['points']		=	$params['points']		=	$pntTot;
+			$paramSalt['id_campaign']	=	$params['id_campaign']	=	$grCampId;
+			$paramSalt['email']			=	$params['email']		=	$param['email'];
+			
+			$params['app']			=	'WP';
+			$params['name']			=	$param['name'];
+			$params['comment']		=	$param['comment'];
+			
+			if($param['order'] == 1)
+			{
+				$min_order		=	get_option('grconnect_min_order');
+				if($min_order	>	$param['subtotal'] && $min_order	!= 0)
+					$pntTot	=	0;
+					
+				$paramSalt['points']		=	$params['points']		=	$pntTot;
+				
+				
+				if($param['createaccount'] != 0){
+					$grWelBonuschkArr	=	get_option('grconnect_wel_bonus_chk');
+					$grWelBonusChk		=	!empty($grWelBonuschkArr)?$grWelBonuschkArr:0;
+					$grWelBonus			=	0;
+					if($grWelBonusChk	==	1)
+					{
+						$grWelBonusArr	=	get_option('grconnect_wel_bonus');
+						$grWelBonus		=	!empty($grWelBonusArr)?$grWelBonusArr:0;
+					
+						$paramSalt['points']		=	$params['points']		=	$pntTot + $grWelBonus;
+						$params['comment']			=	$params['comment']." Welcome bonus added. "; 
+					}
+				}
+			}
+			
+			$allparam				=	implode('#WP#',$paramSalt);
+			$params['salt']			=	md5($allparam);
+						
+		
+			if($grAppId	!=	'' && $grCampId	!=	''){
+				// throw new Exception("Gr app id or app secret is missing");
+					
+				 $url = $urlApi;
+				 $ch = curl_init();
+				 curl_setopt($ch,CURLOPT_URL,$url);
+				 curl_setopt($ch,CURLOPT_HEADER,0);
+				 curl_setopt($ch,CURLOPT_RETURNTRANSFER,1);
+				 curl_setopt($ch, CURLOPT_POSTFIELDS, $params); 
+				 $response = curl_exec($ch);
+				 curl_close($ch);
+
+				
+				 $res = json_decode($response, true);
+				
+						
+				 if(empty($res['error']) === false)
+				 {
+					
+					$msg = 'Unexpected error occur. Please check with administrator.';
+											
+					//throw new Exception($msg);
+				 }
+				
+			}else{
+				echo 'Gr app id or secret is missing';
+			}
+			
+			return;
+		}
 
     } // END class GR_Connect
 } // END if(!class_exists('GR_Connect'))

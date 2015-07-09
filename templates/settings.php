@@ -319,7 +319,7 @@ label {
 .bg-danger {
     padding: 10px;
 }
-.helpNote {
+.ConnectBlock .helpNote {
     border-radius: 50%;
     -webkit-border-radius: 50%;
     -moz-border-radius: 50%;
@@ -822,7 +822,7 @@ h2 img {
     font-size: 14px;
 }
 .ConnectBlock {
-    width: 840px;
+    width: 90%;
 }
 .ConnectBlock small {
     font-size: 11px;
@@ -982,6 +982,21 @@ footer {
             </span>		WELCOME TO 
             <img width="30" height="30" src="<?=plugin_dir_url( __FILE__ )?>../img/gr-logo.jpg"> GRATISFACTION SETUP WIZARD	
             </h2>
+			<div style="background: rgb(255, 255, 255) none repeat scroll 0% 0%; border-right: 1px solid rgb(204, 204, 204); border-left: 4px solid green; color: rgb(51, 51, 51); font-size: 12px; padding: 15px; margin-bottom: 15px;">				
+				<p><img width="30" height="30" src="<?=plugin_dir_url( __FILE__ )?>../img/Video.png"> Watch Tutorial <a target="_blank" href="https://www.youtube.com/user/AppsMavOfficial">https://www.youtube.com/user/AppsMavOfficial</a></p>				
+				
+				<p>Gratisfaction is a very powerful application, which will help you increase engagement, traffic, leads &amp; sales. We would love to see your business grow through our applications &amp; are ready to provide you with awesome support.</p>
+				
+				<p>So if you face any problem installing this app, simply email the following to <a href="mailto:sales@appsmav.com">sales@appsmav.com</a></p>
+				
+				<ul style="margin: 0px 30px;">					
+					<li>- Your WordPress website admin URL &amp; login credentials</li>					
+					<li>- if you are not an existing customer, your contact details</li>					
+					<li>- If you are an existing customer, your Apps Mav admin login credentials</li>				
+				</ul>				
+				<p>That is it. Our team will work with you to correctly install &amp; configure Gratisfaction.</p>				
+				<p>All the best<br>Team Apps Mav</p>			
+			</div>
             <div class="ConnectBlock">
                 <form class="formGr form-horizontal" method="post" action="options.php">
                     <?php @settings_fields('grconnect-group'); ?>

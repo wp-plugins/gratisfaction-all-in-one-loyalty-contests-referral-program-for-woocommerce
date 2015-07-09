@@ -1013,7 +1013,7 @@ footer {
                     <div class="form-group">
 						<label for="grconnect_secret" class="control-label col-sm-5">Gratisfaction App Secret 
 							<span class="asterisk">*</span>
-							<button title="" data-placement="bottom" data-toggle="tooltip" class="btn btn-default helpNote" type="button" data-original-title="Your Gratisfaction App secret can be found in the Gratisfaction app. Please login at www.appsmav.com ">?</button>
+							<button title="" data-placement="bottom" data-toggle="tooltip" class="btn btn-default helpNote" type="button" data-original-title="Your Gratisfaction App secret can be found in the Gratisfaction app. Please login at www.appsmav.com">?</button>
 						</label>
 					<div class="col-sm-4">
 						<input type="text" name="grconnect_secret" maxlength="10" id="grconnect_secret" value="<?php echo get_option('grconnect_secret'); ?>" class="form-control" .>
@@ -1039,7 +1039,7 @@ footer {
 										<span style="float: left; padding-top: 5px;">point(s)</span>
 									</div>
 							</div>
-							<p style="padding: 0px 15px; clear: both; margin: 12px -15px; font-size: 12px;">						Example: For every 
+							<p style="background: #f2f2f2 none repeat scroll 0 0;    border: 1px solid #000;    box-shadow: 0 6px 10px #ccc;    clear: both;    font-size: 14px;    margin: 12px 0;    padding: 15px;">						Example: For every 
 							<b style="border: 1px solid rgb(0, 0, 0); padding: 0px 2px;">2</b> purchase, reward 
 							<b style="border: 1px solid rgb(0, 0, 0); padding: 0px 2px;">1</b> point(s)
 							<br>						This would mean as follows:
@@ -1053,7 +1053,7 @@ footer {
 					</div>
 					<div class="form-group">
 						<label class="control-label col-sm-5" for="grconnect_min_order">Minimun Order Value 					
-							<button title="" data-placement="bottom" data-toggle="tooltip" class="btn btn-default helpNote" type="button" data-original-title="By default a customer earns points from orders regardless of the order value (tax, shippind,discount and handling excluded). Put 0 if not want to apply it">?</button>
+							<button title="" data-placement="bottom" data-toggle="tooltip" class="btn btn-default helpNote" type="button" data-original-title="By default a customer earns points from orders regardless of the order value (tax, shipping, discount and handling excluded).">?</button>
 						</label>
 						<div class="col-sm-4">
 							<input type="text" class="form-control" name="grconnect_min_order" id="grconnect_min_order" value="<?php echo get_option('grconnect_min_order'); ?>"/>
@@ -1062,7 +1062,7 @@ footer {
 					</div>
 					<div class="form-group">
 						<label class="control-label col-sm-5" for="grconnect_wel_bonus">Welcome Bonus					
-							<button title="" data-placement="bottom" data-toggle="tooltip" class="btn btn-default helpNote" type="button" data-original-title="If enable, a one-time Welcome bonus is automatically given to all store accounts eligible for the loyality program)">?</button>
+							<button title="" data-placement="bottom" data-toggle="tooltip" class="btn btn-default helpNote" type="button" data-original-title="If enabled, a one-time Welcome bonus is given to all new store accounts eligible for the loyalty program">?</button>
 						</label>
 						<div class="col-sm-4">
 							<input type="radio" name="grconnect_wel_bonus_chk" value="1" />ON

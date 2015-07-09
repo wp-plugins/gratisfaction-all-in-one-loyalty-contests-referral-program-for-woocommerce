@@ -1052,7 +1052,7 @@ footer {
 						</div>
 					</div>
 					<div class="form-group">
-						<label class="control-label col-sm-5" for="grconnect_min_order">Minimun Order Value 					
+						<label class="control-label col-sm-5" for="grconnect_min_order">Minimum Order Value 					
 							<button title="" data-placement="bottom" data-toggle="tooltip" class="btn btn-default helpNote" type="button" data-original-title="By default a customer earns points from orders regardless of the order value (tax, shipping, discount and handling excluded).">?</button>
 						</label>
 						<div class="col-sm-4">
@@ -1064,9 +1064,9 @@ footer {
 						<label class="control-label col-sm-5" for="grconnect_wel_bonus">Welcome Bonus					
 							<button title="" data-placement="bottom" data-toggle="tooltip" class="btn btn-default helpNote" type="button" data-original-title="If enabled, a one-time Welcome bonus is given to all new store accounts eligible for the loyalty program">?</button>
 						</label>
-						<div class="col-sm-4">
-							<input type="radio" name="grconnect_wel_bonus_chk" value="1" />ON
-							<input type="radio" name="grconnect_wel_bonus_chk" value="0" />OFF
+						<div class="col-sm-4" style="margin-top: 10px;">
+							<input type="radio" name="grconnect_wel_bonus_chk" value="1" style="margin-top: 0;" />ON
+							<input type="radio" name="grconnect_wel_bonus_chk" value="0" style="margin-top: 0;" />OFF
 						</div>
 					</div>
 					<div class="form-group">

@@ -1,7 +1,7 @@
 <?php
 /**
  * @package GR Connect
- * @version 1.0.2
+ * @version 1.0.3
  */
 /*
  Plugin Name: Gratisfaction All-in-One loyalty contests referral program for WooCommerce
@@ -92,10 +92,12 @@ if(!class_exists('GR_Connect'))
 			if(($_REQUEST['original_post_status']	==	'wc-cancelled') && ($_REQUEST['order_status']	!=	'wc-cancelled') ){
 			
 				 $urlApi = $this->api_url.'/addEntry';
+				 $param['status']		=	'Add';
 				 
 			}else if($_REQUEST['order_status']	==	'wc-cancelled'){
 				
 				$urlApi =  $this->api_url.'/removeEntry';
+				$param['status']		=	'Cancel';
 				
 			}else{
 				return;
@@ -116,6 +118,7 @@ if(!class_exists('GR_Connect'))
 						
 					
 			$param['order']	=	0;
+			$param['id_order']		=	$order_id;
 					
 			$this->callGrConnectApi($param,$urlApi);	
 		}
@@ -138,9 +141,11 @@ if(!class_exists('GR_Connect'))
 			$param['email']	=	$_REQUEST['billing_email'];//$param['user']->data->user_email;
 			$param['order']	=	1;
 			$param['createaccount']	=	isset($_REQUEST['createaccount'])?$_REQUEST['createaccount']:0;
+			$param['id_order']		=	$order_id;
 			
 			$param['name']			=	$_REQUEST['billing_first_name'];
-			$param['comment']		=	'Order Id - '.$order_id.' From '.get_option('siteurl');			
+			$param['comment']		=	'Order Id - '.$order_id.' From '.get_option('siteurl');	
+			$param['status']		=	'Add';
 		
 			$urlApi	= $this->api_url.'/addEntry';
 			
@@ -177,11 +182,13 @@ if(!class_exists('GR_Connect'))
 			
 				$param['email']	=	$email;
 				$param['order']	=	0;
+				$param['id_order']	=	$refund->post->post_parent;
 				
 				$urlApi =  $this->api_url.'/addEntry';
 				
 				$param['name']			=	$order->billing_first_name;
 				$param['comment']		=	'Order Id Refund Restore - '.$refund->post->post_parent.' From '.get_option('siteurl');
+				$param['status']		=	'Add';
 						
 				$this->callGrConnectApi($param,$urlApi);
 			}						
@@ -212,11 +219,13 @@ if(!class_exists('GR_Connect'))
 			$param['total'] =	$amt;
 			$param['email']	=	$email;
 			$param['order']	=	0;
+			$param['id_order']	=	$order_id;
 			
 			$urlApi =  $this->api_url.'/removeEntry';
 			
 			$param['name']			=	$order->billing_first_name;
 			$param['comment']		=	'Order Id Refunded - '.$order_id.' From '.get_option('siteurl');
+			$param['status']		=	'Refund';
 			
 		
 			$this->callGrConnectApi($param,$urlApi);
@@ -264,6 +273,7 @@ if(!class_exists('GR_Connect'))
 			register_setting('grconnect-group', 'grconnect_min_order');			
 			register_setting('grconnect-group', 'grconnect_wel_bonus_chk');			
 			register_setting('grconnect-group', 'grconnect_wel_bonus');
+			register_setting('grconnect-group', 'grconnect_register');
 		} // END public function init_custom_settings()
 		
 		/**
@@ -288,6 +298,9 @@ if(!class_exists('GR_Connect'))
 			// Render the settings template
 			if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) ) ) {
 				include(sprintf("%s/templates/settings.php", dirname(__FILE__)));
+				
+				$this->callGrConnectRegisterApi();
+				
 			}
 			else
 			{
@@ -295,9 +308,52 @@ if(!class_exists('GR_Connect'))
 			}
 		} // END public function plugin_settings_page()
 		
+		private function callGrConnectRegisterApi()
+		{
+			$grRegisterArr	=	get_option('grconnect_register',0);
+			$grRegister		=	!empty($grRegisterArr)?$grRegisterArr:0;
+			
+			$grAppIdArr	=	get_option('grconnect_appid',0);
+			$grAppId	=	!empty($grAppIdArr)?$grAppIdArr:0;
+			
+			if($grRegister	== 1 || $grAppId	== 0) return ;
+			
+			$shop_id	=	get_option('grconnect_shop_id',0);
+								
+			$param['id_site']		=	$grAppId;
+			$param['type']			=	'url';
+			$param['plugin_type']	=	'WP';
+			$param['shop_url']		=	get_option('siteurl');
+			$param['shop_name']		=	get_option('blogname');
+			
+			$url	=	$this->api_url.'/register';
+			$ch = curl_init();
+			curl_setopt($ch,CURLOPT_URL,$url);
+			curl_setopt($ch,CURLOPT_HEADER,0);
+			curl_setopt($ch,CURLOPT_RETURNTRANSFER,1);
+			curl_setopt($ch, CURLOPT_POSTFIELDS, $param); 
+			$response = curl_exec($ch);
+			curl_close($ch);
+
+			
+			$res = json_decode($response, true);
+			
+			if($res['error']	==	0){
+				add_option( 'grconnect_shop_id', $res['id_shop'], '', 'no' );
+				update_option( 'grconnect_register', 1 );
+			}
+		}
+		
 		private function callGrConnectApi($param,$urlApi)
 		{
 						
+			$shop_id	=	get_option('grconnect_shop_id',0);
+			if($shop_id	==	0)
+			{
+				$this->callGrConnectRegisterApi();	
+				$shop_id	=	get_option('grconnect_shop_id');
+			}
+			
 			$amtArr		=	get_option('grconnect_price');
 			$amt		=	!empty($amtArr)?$amtArr:'';
 			
@@ -350,7 +406,11 @@ if(!class_exists('GR_Connect'))
 			
 			$allparam				=	implode('#WP#',$paramSalt);
 			$params['salt']			=	md5($allparam);
-						
+			$params['id_shop']		=	$shop_id;
+			$params['id_order']		=	$param['id_order'];
+			$params['amount']		=	$param['total'];
+			$params['currency']		=	get_option('woocommerce_currency','USD');
+			$params['status']		=	$param['status'];			
 		
 			if($grAppId	!=	'' && $grCampId	!=	''){
 				// throw new Exception("Gr app id or app secret is missing");

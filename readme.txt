@@ -94,5 +94,9 @@ Contact us Anytime! For any pre-sales or product inquiries, send us an email to 
 * Initial release.
 
 == Upgrade Notice ==
-= 0.1 =
-This version fixes a security related bug. Upgrade immediately.
+= 0.2 =
+This version have register shop feature with GR site.
+
+== Upgrade Notice ==
+= 0.3 =
+This version have auto register shop, campaign and free 0-200 package setup.

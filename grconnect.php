@@ -7,7 +7,7 @@
  Plugin Name: Gratisfaction All-in-One loyalty contests referral program for WooCommerce
  Plugin URI: http://appsmav.com
  Description: Connect your WooCommerce orders with Apps Mav Gratisfaction Loyality Program.
- Version: 1.0.2
+ Version: 1.0.3
  Author: Appsmav
  Author URI: http://appsmav.com
  License: GPL2
@@ -33,7 +33,7 @@ if(!class_exists('GR_Connect'))
 {
     class GR_Connect 
     {
-		var $api_url		= 'https://appsmav.com/gr/api';
+		var $api_url		= 'https://appsmav.com/gr/newapi/v1';
         /**
          * Construct the plugin object
          */
@@ -67,6 +67,23 @@ if(!class_exists('GR_Connect'))
 				remove_action('woocommerce_order_status_changed', array(&$this,'send_status_init'));
 				remove_action('woocommerce_order_refunded', array(&$this,'send_refund_init'));
 				remove_action('before_delete_post', array(&$this, 'send_refund_delete_post_init'));
+				
+				unregister_setting('grconnect-group', 'grconnect_appid');			
+				unregister_setting('grconnect-group', 'grconnect_secret');			
+				unregister_setting('grconnect-group', 'grconnect_point');			
+				unregister_setting('grconnect-group', 'grconnect_price');	
+				unregister_setting('grconnect-group', 'grconnect_min_order');			
+				unregister_setting('grconnect-group', 'grconnect_wel_bonus_chk');			
+				unregister_setting('grconnect-group', 'grconnect_wel_bonus');
+				delete_option('grconnect_shop_id');
+				delete_option('grconnect_appid');
+				delete_option('grconnect_secret');
+				delete_option('grconnect_point');
+				delete_option('grconnect_price');
+				delete_option('grconnect_min_order');
+				delete_option('grconnect_wel_bonus_chk');
+				delete_option('grconnect_wel_bonus');
+				delete_option('grconnect_register');
 				
 				$to = get_bloginfo('admin_email');
 				$name = get_bloginfo('name');
@@ -134,6 +151,10 @@ if(!class_exists('GR_Connect'))
 			//echo $param['total'] = $order->get_total();
 			$param['subtotal'] = $order->get_subtotal();
 			$param['user'] = $order->get_user();
+			$couponsArr		=	$order->get_used_coupons();
+			
+			if(!empty($couponsArr))
+			$param['coupon'] = $couponsArr[0];
 			
 			//if($param['total']	==	0)
 			$param['total'] =	$param['subtotal'];
@@ -273,7 +294,9 @@ if(!class_exists('GR_Connect'))
 			register_setting('grconnect-group', 'grconnect_min_order');			
 			register_setting('grconnect-group', 'grconnect_wel_bonus_chk');			
 			register_setting('grconnect-group', 'grconnect_wel_bonus');
-			register_setting('grconnect-group', 'grconnect_register');
+			//register_setting('grconnect-group', 'grconnect_register');
+			
+			add_action( 'wp_ajax_create_account', array(&$this,'gr_ajax_create_account' ));
 		} // END public function init_custom_settings()
 		
 		/**
@@ -298,9 +321,7 @@ if(!class_exists('GR_Connect'))
 			// Render the settings template
 			if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) ) ) {
 				include(sprintf("%s/templates/settings.php", dirname(__FILE__)));
-				
-				$this->callGrConnectRegisterApi();
-				
+								
 			}
 			else
 			{
@@ -308,25 +329,66 @@ if(!class_exists('GR_Connect'))
 			}
 		} // END public function plugin_settings_page()
 		
-		private function callGrConnectRegisterApi()
+		public function gr_ajax_create_account(){
+			self::callAcctRegister($_POST);
+		}
+		
+		private function callAcctRegister($p){
+		
+			$params["action"] = "createaccount"; 
+			$params["firstname"] = $p['grconnect_reg_firstname'];
+			$params["lastname"] = $p['grconnect_reg_lastname'];
+			$params["companyname"] = $p['grconnect_reg_companyname'];
+			$params["email"] = $p['grconnect_reg_email'];
+			$params["address1"] = $p['grconnect_reg_address1'];
+			$params["city"] = $p['grconnect_reg_city'];
+			$params["state"] = $p['grconnect_reg_state'];
+			$params["postcode"] = $p['grconnect_reg_postcode'];
+			$params["country"] = $p['grconnect_reg_country'];
+			$params["currency"] = $p['grconnect_reg_currency'];
+			$params["phonenumber"] = $p['grconnect_reg_phonenumber'];
+		
+			$url = 'http://appsmav.com/handle_curl.php';
+			$ch = curl_init();
+			curl_setopt($ch,CURLOPT_URL,$url);
+			curl_setopt($ch,CURLOPT_HEADER,0);
+			curl_setopt($ch,CURLOPT_RETURNTRANSFER,1);
+			curl_setopt($ch, CURLOPT_POSTFIELDS, $params); 
+			$res = curl_exec($ch);
+			curl_close($ch);
+			$resArr	=	json_decode($res,true);
+			
+			
+			if(trim($resArr['result'])	==	'success'){
+				
+				$param				=	array();
+				$param['id_site']	=	$resArr['service_id'];
+				$param['client_id']	=	$resArr['client_id'];
+				$param['email']		=	get_bloginfo('admin_email');
+				self::callGrConnectRegisterApi($param,$p);
+			}else{
+				$resArr['error']	=	1;
+				die(json_encode($resArr));
+			}
+			
+		}
+		
+		private function callGrConnectRegisterApi($params,$p)
 		{
-			$grRegisterArr	=	get_option('grconnect_register',0);
-			$grRegister		=	!empty($grRegisterArr)?$grRegisterArr:0;
-			
-			$grAppIdArr	=	get_option('grconnect_appid',0);
-			$grAppId	=	!empty($grAppIdArr)?$grAppIdArr:0;
-			
-			if($grRegister	== 1 || $grAppId	== 0) return ;
-			
-			$shop_id	=	get_option('grconnect_shop_id',0);
-								
-			$param['id_site']		=	$grAppId;
+			$param['id_site']		=	$params['id_site'];
+			$param['client_id']		=	$params['client_id'];
+			$param['admin_email']	=	$params['email'];
 			$param['type']			=	'url';
 			$param['plugin_type']	=	'WP';
 			$param['shop_url']		=	get_option('siteurl');
 			$param['shop_name']		=	get_option('blogname');
 			
-			$url	=	$this->api_url.'/register';
+			$param['campaign_name']			=	$p['grconnect_reg_campaign_name'];
+			$param['timezone']				=	$p['grconnect_reg_timezone'];
+			$param['date_format']			=	$p['grconnect_reg_date_format'];
+			$param['exclusion_period']		=	$p['grconnect_reg_exclusion_period'];
+			
+			$url	=	self::api_url.'/register';
 			$ch = curl_init();
 			curl_setopt($ch,CURLOPT_URL,$url);
 			curl_setopt($ch,CURLOPT_HEADER,0);
@@ -337,11 +399,17 @@ if(!class_exists('GR_Connect'))
 
 			
 			$res = json_decode($response, true);
-			
+			//mail('simranmav@gmail.com','testing response shop register',print_r($param,true).print_r($res,true));
 			if($res['error']	==	0){
-				add_option( 'grconnect_shop_id', $res['id_shop'], '', 'no' );
+				update_option( 'grconnect_shop_id', $res['id_shop']);
+				update_option( 'grconnect_appid', $params['id_site']);
+				update_option( 'grconnect_secret', $res['secret']);
 				update_option( 'grconnect_register', 1 );
+				
+				$res['appid']	=	$params['id_site'];
+				$response	=	json_encode($res);	
 			}
+			die($response);
 		}
 		
 		private function callGrConnectApi($param,$urlApi)

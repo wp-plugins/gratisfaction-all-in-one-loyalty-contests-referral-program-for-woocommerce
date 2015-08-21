@@ -388,7 +388,7 @@ if(!class_exists('GR_Connect'))
 			$param['date_format']			=	$p['grconnect_reg_date_format'];
 			$param['exclusion_period']		=	$p['grconnect_reg_exclusion_period'];
 			
-			$url	=	self::api_url.'/register';
+			$url	=	$this->api_url.'/register';
 			$ch = curl_init();
 			curl_setopt($ch,CURLOPT_URL,$url);
 			curl_setopt($ch,CURLOPT_HEADER,0);

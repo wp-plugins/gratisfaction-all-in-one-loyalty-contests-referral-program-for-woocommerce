@@ -364,7 +364,7 @@ if(!class_exists('GR_Connect'))
 				$param				=	array();
 				$param['id_site']	=	$resArr['service_id'];
 				$param['client_id']	=	$resArr['client_id'];
-				$param['email']		=	get_bloginfo('admin_email');
+				$param['email']		=	$params["email"];
 				self::callGrConnectRegisterApi($param,$p);
 			}else{
 				$resArr['error']	=	1;
@@ -474,7 +474,9 @@ if(!class_exists('GR_Connect'))
 			
 			$allparam				=	implode('#WP#',$paramSalt);
 			$params['salt']			=	md5($allparam);
+			
 			$params['id_shop']		=	$shop_id;
+			$params['coupon']		=	isset($param['coupon'])?$param['coupon']:'';
 			$params['id_order']		=	$param['id_order'];
 			$params['amount']		=	$param['total'];
 			$params['currency']		=	get_option('woocommerce_currency','USD');

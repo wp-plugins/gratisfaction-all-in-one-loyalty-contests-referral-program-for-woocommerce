@@ -900,9 +900,10 @@ h2 img {
     border: 2px solid #7ab45f;
     color: #333;
     font: 16px "arial", sans-serif;
-    margin: 0 auto;
+    margin: 0 5%;
     padding: 50px;
     text-align: center;
+    width: 90% !important;
     vertical-align: middle;
     overflow: hidden;
 }

@@ -1367,8 +1367,10 @@ Tirane">Europe/Tirane</option><option value="Europe/Uzhgorod">Europe/Uzhgorod</o
 			  show: false
 			});
 			callLoader();
+		}else{
+			jQuery('#frameSetting').iFrameResize();
 		}
 		jQuery('body').tooltip({selector: '[data-toggle=tooltip]'}); 
-		jQuery('#frameSetting').iFrameResize();
+		
 	});
 </script>

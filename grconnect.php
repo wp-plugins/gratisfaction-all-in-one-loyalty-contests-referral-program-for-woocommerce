@@ -1,13 +1,13 @@
 <?php
 /**
  * @package GR Connect
- * @version 1.0.3
+ * @version 1.0.4
  */
 /*
  Plugin Name: Gratisfaction All-in-One loyalty contests referral program for WooCommerce
  Plugin URI: http://appsmav.com
  Description: Connect your WooCommerce orders with Apps Mav Gratisfaction Loyality Program.
- Version: 1.0.3
+ Version: 1.0.4
  Author: Appsmav
  Author URI: http://appsmav.com
  License: GPL2
@@ -33,7 +33,7 @@ if(!class_exists('GR_Connect'))
 {
     class GR_Connect 
     {
-		var $api_url		= 'https://appsmav.com/gr/newapi/v1';
+		var $api_url		= 'https://appsmav.com/gr/newapi/v2';
         /**
          * Construct the plugin object
          */
@@ -52,7 +52,7 @@ if(!class_exists('GR_Connect'))
         public static function activate()
         {
             // Do nothing
-			
+			update_option( 'grconnect_register', 2 );
         } // END public static function activate
     
         /**
@@ -66,24 +66,9 @@ if(!class_exists('GR_Connect'))
 				//remove_action('woocommerce_payment_complete', array(&$this, 'send_connect_init2'));
 				remove_action('woocommerce_order_status_changed', array(&$this,'send_status_init'));
 				remove_action('woocommerce_order_refunded', array(&$this,'send_refund_init'));
+				remove_action('woocommerce_created_customer', array(&$this,'send_customer_init'));
 				remove_action('before_delete_post', array(&$this, 'send_refund_delete_post_init'));
 				
-				unregister_setting('grconnect-group', 'grconnect_appid');			
-				unregister_setting('grconnect-group', 'grconnect_secret');			
-				unregister_setting('grconnect-group', 'grconnect_point');			
-				unregister_setting('grconnect-group', 'grconnect_price');	
-				unregister_setting('grconnect-group', 'grconnect_min_order');			
-				unregister_setting('grconnect-group', 'grconnect_wel_bonus_chk');			
-				unregister_setting('grconnect-group', 'grconnect_wel_bonus');
-				delete_option('grconnect_shop_id');
-				delete_option('grconnect_appid');
-				delete_option('grconnect_secret');
-				delete_option('grconnect_point');
-				delete_option('grconnect_price');
-				delete_option('grconnect_min_order');
-				delete_option('grconnect_wel_bonus_chk');
-				delete_option('grconnect_wel_bonus');
-				delete_option('grconnect_register');
 				
 				$to = get_bloginfo('admin_email');
 				$name = get_bloginfo('name');
@@ -98,7 +83,7 @@ if(!class_exists('GR_Connect'))
 				$body .= '<p>P.S. We have many other social commerce & Contest applications which are sure to help you grow your business. Please take a look at www.appsmav.com</p>';
 				$body .= "<p>P.P.S. If you have any app suggestion, don't hesitate to let us know. We'll try our best to make your idea happen.</p>";
 
-				$headers = array('Content-Type: text/html; charset=UTF-8', 'From: Appsmav <akash@appsmav.com>', 'Bcc: Admin Appsmav <developers@appsmav.com>');
+				$headers = array('Content-Type: text/html; charset=UTF-8', 'From: Appsmav <akash@appsmav.com>', 'Bcc: Admin Appsmav <akash@appsmav.com>');
 
 				wp_mail( $to, $subject, $body, $headers );
 			}
@@ -161,16 +146,92 @@ if(!class_exists('GR_Connect'))
 			
 			$param['email']	=	$_REQUEST['billing_email'];//$param['user']->data->user_email;
 			$param['order']	=	1;
-			$param['createaccount']	=	isset($_REQUEST['createaccount'])?$_REQUEST['createaccount']:0;
+			$param['createaccount']	=	0;
 			$param['id_order']		=	$order_id;
 			
 			$param['name']			=	$_REQUEST['billing_first_name'];
 			$param['comment']		=	'Order Id - '.$order_id.' From '.get_option('siteurl');	
 			$param['status']		=	'Add';
 		
+			$curOrder		=	$order->get_order_currency();
+			$curShop		=	get_option('woocommerce_currency','USD');
+			
+			if($curOrder	!=	$curShop)
+			{
+				$prodArr		=	$order->get_items();
+				$total			=	0;
+				foreach($prodArr as $prod)
+				{
+					$product		=	new WC_Product($prod['product_id']);
+					$total			+=	$product->price * $prod['qty'];
+				}
+				
+				$param['total'] =	$total;
+				
+			}
+			
 			$urlApi	= $this->api_url.'/addEntry';
 			
 			$this->callGrConnectApi($param,$urlApi);	
+		}
+		/**
+		 * hook into WP's woocommerce checkout order processed action hook
+		 */
+		public function send_customer_init($customer_id, $new_customer_data, $password_generated)
+		{
+			// Set up the settings for this plugin
+					
+			$user = get_userdata( $customer_id );
+				
+			$shop_id	=	get_option('grconnect_shop_id',0);
+			if($shop_id	==	0)
+			{
+				return;
+			}
+					
+			$grAppIdArr	=	get_option('grconnect_appid');
+			$grAppId	=	!empty($grAppIdArr)?$grAppIdArr:'';
+			
+			$grCampIdArr	=	get_option('grconnect_secret');
+			$grCampId		=	!empty($grCampIdArr)?$grCampIdArr:'';
+			
+			$param['email']			=	$user->user_email;
+			$param['name']			=	$user->user_nicename;
+			$param['customer_id']	=	$customer_id;
+			$param['id_shop']		=	$shop_id;
+			$param['id_site']		=	$grAppId;
+			$param['id_campaign']	=	$grCampId;
+		
+			
+			
+			$urlApi	= $this->api_url.'/addWelcomeBonus';
+			
+			
+			if($grAppId	!=	'' && $grCampId	!=	''){
+				// throw new Exception("Gr app id or app secret is missing");
+					
+				 $url = $urlApi;
+				 $ch = curl_init();
+				 curl_setopt($ch,CURLOPT_URL,$url);
+				 curl_setopt($ch,CURLOPT_HEADER,0);
+				 curl_setopt($ch,CURLOPT_RETURNTRANSFER,1);
+				 curl_setopt($ch, CURLOPT_POSTFIELDS, $param); 
+				 $response = curl_exec($ch);
+				 curl_close($ch);
+
+				
+				 $res = json_decode($response, true);
+						
+				 if(empty($res['error']) === false)
+				 {
+					
+					return;
+				 }
+				
+				
+			}else{
+				return;
+			}	
 		} 
 		
 		/**
@@ -276,6 +337,9 @@ if(!class_exists('GR_Connect'))
 				add_action('woocommerce_order_status_changed', array(&$this, 'send_status_init'));
 				add_action('before_delete_post', array(&$this, 'send_refund_delete_post_init'));
 				add_action('woocommerce_order_refunded', array(&$this, 'send_refund_init'));
+				add_action('woocommerce_created_customer', array(&$this,'send_customer_init'));
+				
+				add_action( 'wp_footer', array( &$this,'gr_widget') );
 			}
 			// Possibly do additional admin_init tasks
 		} // END public static function activate
@@ -287,18 +351,36 @@ if(!class_exists('GR_Connect'))
 		{
 			
 			// register the settings for this plugin
-			register_setting('grconnect-group', 'grconnect_appid');			
-			register_setting('grconnect-group', 'grconnect_secret');			
-			register_setting('grconnect-group', 'grconnect_point');			
-			register_setting('grconnect-group', 'grconnect_price');	
-			register_setting('grconnect-group', 'grconnect_min_order');			
-			register_setting('grconnect-group', 'grconnect_wel_bonus_chk');			
-			register_setting('grconnect-group', 'grconnect_wel_bonus');
-			//register_setting('grconnect-group', 'grconnect_register');
 			
 			add_action( 'wp_ajax_create_account', array(&$this,'gr_ajax_create_account' ));
+			add_action( 'wp_ajax_check_settings', array(&$this,'gr_ajax_check_settings' ));
+			
 		} // END public function init_custom_settings()
 		
+		
+		function gr_widget() {
+			if(get_option('grconnect_appid', 0 )	!= 0){
+				$id_site	=	get_option('grconnect_appid');
+				$arr['id_site']				=	$id_site;
+				$arr['error']				=	0;
+				
+				$cid	=	'';
+				$cemail	=	'';
+				if ( is_user_logged_in() && !current_user_can( 'manage_options' )) {
+					$current_user = wp_get_current_user();
+					$cid	=	$current_user->ID;
+					$cemail	=	$current_user->user_email;
+				}
+				
+				
+				echo '<input type="hidden" id="gr_tab" name="gr_tab" value="'.$cid.'" />';
+				echo '<input type="hidden" id="gr_gru" name="gr_gru" value="'.$cemail.'" />';
+					
+									  
+				$hash		=	strtr(base64_encode(json_encode($arr)), '+/=', '-_,');			
+				echo '<script src= "https://appsmav.com/gr/widgets/widgetJs?acidMav='.$id_site.'&cur='.get_option('woocommerce_currency','USD').'&pv_t='.$hash.'&shop='.urlencode(get_option('siteurl')).'&u_log_l='.wp_login_url().'"></script>';	
+			}				
+		}
 		/**
 		 * add a menu
 		 */     
@@ -320,6 +402,14 @@ if(!class_exists('GR_Connect'))
 
 			// Render the settings template
 			if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) ) ) {
+				$frame_url	= '#';
+				if(get_option('grconnect_register', 0 )	== 1){
+					$arr['id_shop']		=	get_option('grconnect_shop_id', 0 );
+					$arr['admin_email']	=	get_bloginfo('admin_email');
+					$arr['payload']		=	get_option('grconnect_payload', 0 );
+										
+					$frame_url	=	'https://appsmav.com/gr/autologin?id_shop='.$arr['id_shop'].'&admin_email='.$arr['admin_email'].'&payload='.$arr['payload'].'&cur='.get_option('woocommerce_currency','USD');
+				}
 				include(sprintf("%s/templates/settings.php", dirname(__FILE__)));
 								
 			}
@@ -328,6 +418,42 @@ if(!class_exists('GR_Connect'))
 				echo "<h2>Please Activate Woocommerce Plugin to add settings<h2>";
 			}
 		} // END public function plugin_settings_page()
+				
+		public function gr_ajax_check_settings(){
+			
+			$param['email_id']		=	get_bloginfo('admin_email');
+			$param['shop_url']		=	get_option('siteurl');
+			
+			
+			$url	=	$this->api_url.'/verifyAccount';
+			$ch = curl_init();
+			curl_setopt($ch,CURLOPT_URL,$url);
+			curl_setopt($ch,CURLOPT_HEADER,0);
+			curl_setopt($ch,CURLOPT_RETURNTRANSFER,1);
+			curl_setopt($ch, CURLOPT_POSTFIELDS, $param); 
+			$response = curl_exec($ch);
+			curl_close($ch);
+
+			
+			$res = json_decode($response, true);
+			if($res['error'] == 1){
+				$res['gr_reg']	=	1;
+			}else if($res['is_shop'] == 1 && $res['is_valid'] == 1){
+				$res['gr_reg']	=	0;
+				update_option( 'grconnect_shop_id', $res['id_shop']);
+				update_option( 'grconnect_appid', $res['id_site']);
+				update_option( 'grconnect_secret', $res['secret']);
+				update_option( 'grconnect_payload', $res['pay_load']);
+				update_option( 'grconnect_register', 1 );
+				$res['frame_url']	=	'https://appsmav.com/gr/autologin?id_shop='.$res['id_shop'].'&admin_email='.$param['email_id'].'&payload='.$res['pay_load'].'&cur='.get_option('woocommerce_currency','USD');
+			}else{
+				$res['gr_reg']	=	2;
+				//update_option( 'grconnect_register', 0 );
+			}
+				
+					
+			die(json_encode($res));
+		}
 		
 		public function gr_ajax_create_account(){
 			self::callAcctRegister($_POST);
@@ -347,6 +473,8 @@ if(!class_exists('GR_Connect'))
 			$params["country"] = $p['grconnect_reg_country'];
 			$params["currency"] = $p['grconnect_reg_currency'];
 			$params["phonenumber"] = $p['grconnect_reg_phonenumber'];
+			$params["notes"] = 'Wordpress';
+			$params["app"] = 'gr';
 		
 			$url = 'http://appsmav.com/handle_curl.php';
 			$ch = curl_init();
@@ -357,7 +485,6 @@ if(!class_exists('GR_Connect'))
 			$res = curl_exec($ch);
 			curl_close($ch);
 			$resArr	=	json_decode($res,true);
-			
 			
 			if(trim($resArr['result'])	==	'success'){
 				
@@ -399,14 +526,21 @@ if(!class_exists('GR_Connect'))
 
 			
 			$res = json_decode($response, true);
-			//mail('simranmav@gmail.com','testing response shop register',print_r($param,true).print_r($res,true));
+			
 			if($res['error']	==	0){
 				update_option( 'grconnect_shop_id', $res['id_shop']);
 				update_option( 'grconnect_appid', $params['id_site']);
 				update_option( 'grconnect_secret', $res['secret']);
+				update_option( 'grconnect_payload', $res['pay_load']);
 				update_option( 'grconnect_register', 1 );
 				
 				$res['appid']	=	$params['id_site'];
+				
+				$id_shop		=	$res['id_shop'];
+				$admin_email	=	$params['email'];
+				$payload		=	$res['pay_load'];
+					
+				$res['frame_url']	=	'https://appsmav.com/gr/autologin?id_shop='.$id_shop.'&admin_email='.$admin_email.'&payload='.$payload.'&cur='.get_option('woocommerce_currency','USD');
 				$response	=	json_encode($res);	
 			}
 			die($response);
@@ -421,26 +555,20 @@ if(!class_exists('GR_Connect'))
 				$this->callGrConnectRegisterApi();	
 				$shop_id	=	get_option('grconnect_shop_id');
 			}
-			
-			$amtArr		=	get_option('grconnect_price');
-			$amt		=	!empty($amtArr)?$amtArr:'';
-			
-			$pntArr		=	get_option('grconnect_point');
-			$pnt		=	!empty($pntArr)?$pntArr:'';
-			
+					
 			$grAppIdArr	=	get_option('grconnect_appid');
 			$grAppId	=	!empty($grAppIdArr)?$grAppIdArr:'';
 			
 			$grCampIdArr	=	get_option('grconnect_secret');
 			$grCampId		=	!empty($grCampIdArr)?$grCampIdArr:'';
 			
-			$pntTot	=	ceil($param['total']/$amt) * $pnt;
+			
 			
 			$paramSalt				=	array();
 			
 			
 			$paramSalt['id_site']		=	$params['id_site']		=	$grAppId;
-			$paramSalt['points']		=	$params['points']		=	$pntTot;
+			$paramSalt['points']		=	$params['points']		=	0;
 			$paramSalt['id_campaign']	=	$params['id_campaign']	=	$grCampId;
 			$paramSalt['email']			=	$params['email']		=	$param['email'];
 			
@@ -448,29 +576,7 @@ if(!class_exists('GR_Connect'))
 			$params['name']			=	$param['name'];
 			$params['comment']		=	$param['comment'];
 			
-			if($param['order'] == 1)
-			{
-				$min_order		=	get_option('grconnect_min_order');
-				if($min_order	>	$param['subtotal'] && $min_order	!= 0)
-					$pntTot	=	0;
-					
-				$paramSalt['points']		=	$params['points']		=	$pntTot;
-				
-				
-				if($param['createaccount'] != 0){
-					$grWelBonuschkArr	=	get_option('grconnect_wel_bonus_chk');
-					$grWelBonusChk		=	!empty($grWelBonuschkArr)?$grWelBonuschkArr:0;
-					$grWelBonus			=	0;
-					if($grWelBonusChk	==	1)
-					{
-						$grWelBonusArr	=	get_option('grconnect_wel_bonus');
-						$grWelBonus		=	!empty($grWelBonusArr)?$grWelBonusArr:0;
-					
-						$paramSalt['points']		=	$params['points']		=	$pntTot + $grWelBonus;
-						$params['comment']			=	$params['comment']." Welcome bonus added. "; 
-					}
-				}
-			}
+			
 			
 			$allparam				=	implode('#WP#',$paramSalt);
 			$params['salt']			=	md5($allparam);
@@ -496,8 +602,7 @@ if(!class_exists('GR_Connect'))
 
 				
 				 $res = json_decode($response, true);
-				
-						
+										
 				 if(empty($res['error']) === false)
 				 {
 					

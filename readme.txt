@@ -104,3 +104,7 @@ This version have auto register shop, campaign and free 0-200 package setup.
 == Upgrade Notice ==
 = 0.4 =
 This version have auto register shop, with iframe version and new api.
+
+== Upgrade Notice ==
+= 0.5 =
+This version have issue fixed while registration validations in new api.

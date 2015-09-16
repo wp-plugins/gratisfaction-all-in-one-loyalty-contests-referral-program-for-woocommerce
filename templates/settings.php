@@ -1331,30 +1331,7 @@ Tirane">Europe/Tirane</option><option value="Europe/Uzhgorod">Europe/Uzhgorod</o
 	}
 	
 	jQuery(document).ready(function(){		
-		var grconnect_wel_bonus_chk	=	'<?php echo get_option('grconnect_wel_bonus_chk'); ?>';	
-		if(	grconnect_wel_bonus_chk == '1'){	
-			//jQuery('#grconnect_wel_bonus').attr('disabled', false);	
-			jQuery('#grconnect_wel_bonus_div').show();
-			jQuery('input[name="grconnect_wel_bonus_chk"][value="1"]').attr('checked', 'checked');	
-		}else{
-			//jQuery('#grconnect_wel_bonus').attr('disabled', 'disabled');
-			jQuery('#grconnect_wel_bonus_div').hide();			
-			jQuery('input[name="grconnect_wel_bonus_chk"][value="0"]').attr('checked', 'checked');		
-		}				
 		
-		jQuery('input[name=grconnect_wel_bonus_chk]').on('click',function(){	
-			var grconnect_wel_bonus_chk	=	jQuery(this).val();	
-			if(	grconnect_wel_bonus_chk == 1)			
-			{				
-				//jQuery('#grconnect_wel_bonus').attr('disabled', false);	
-				jQuery('#grconnect_wel_bonus_div').show();
-			}
-			else
-			{	
-				//jQuery('#grconnect_wel_bonus').attr('disabled', 'disabled');
-				jQuery('#grconnect_wel_bonus_div').hide();				
-			}		
-		});	
 		
 		jQuery('.js-loading-bar').modal({
 		  backdrop: 'static',
